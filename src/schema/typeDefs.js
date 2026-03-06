@@ -118,6 +118,86 @@ const typeDefs = `
     changePassword(input: ChangePasswordInput!): String!
     createProduct(input: CreateProductInput!): Product!
   }
+
+  type CartItem {
+    productId: ID!
+    variantId: ID!
+    quantity: Int!
+  }
+
+  type Cart {
+    id: ID!
+    userId: ID!
+    items: [CartItem!]!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  input AddToCartInput {
+    productId: ID!
+    variantId: ID!
+    quantity: Int!
+  }
+
+  input UpdateCartItemInput {
+    productId: ID!
+    variantId: ID!
+    quantity: Int!
+  }
+
+  extend type Query {
+    getMyCart: Cart!
+  }
+
+  extend type Mutation {
+    addToCart(input: AddToCartInput!): Cart!
+    updateCartItemQuantity(input: UpdateCartItemInput!): Cart!
+    removeFromCart(
+      productId: ID!
+      variantId: ID!
+    ): Cart!
+  }
+
+  type OrderItem {
+    productId: ID!
+    variantId: ID!
+    productName: String!
+    size: String!
+    color: String!
+    quantity: Int!
+    priceAtPurchase: Float!
+  }
+
+  type Order {
+    id: ID!
+    userId: ID!
+    items: [OrderItem!]!
+    totalAmount: Float!
+    status: String!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type PaginatedOrders {
+    data: [Order!]!
+    totalItems: Int!
+    totalPages: Int!
+    currentPage: Int!
+  }
+
+  input CheckoutInput {
+    shippingAddress: String!
+    phone: String!
+  }
+
+  extend type Query {
+    getMyOrders(pagination: PaginationInput): PaginatedOrders!
+  }
+
+  extend type Mutation {
+    checkout(input: CheckoutInput!): Order!
+    mockPayOrder(orderId: ID!): Order!
+  }
 `;
 
 export default typeDefs;
