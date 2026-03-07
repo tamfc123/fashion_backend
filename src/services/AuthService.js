@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { GraphQLError } from "graphql";
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 
@@ -7,7 +8,9 @@ const AuthService = {
         try {
             const existingUser = await User.findOne({ email });
             if (existingUser) {
-                throw new Error('Email already in use');
+                throw new GraphQLError('Email already in use', {
+                    extensions: { code: 'BAD_USER_INPUT' }
+                });
             }
 
             const salt = await bcrypt.genSalt(10);
@@ -33,7 +36,10 @@ const AuthService = {
                 }
             };
         } catch (error) {
-            throw new Error(error.message);
+            if (error instanceof GraphQLError) throw error;
+            throw new GraphQLError(error.message, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' }
+            });
         }
     },
 
@@ -41,12 +47,16 @@ const AuthService = {
         try {
             const user = await User.findOne({ email });
             if (!user) {
-                throw new Error('Invalid credentials');
+                throw new GraphQLError('Invalid credentials', {
+                    extensions: { code: 'UNAUTHENTICATED' }
+                });
             }
 
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
-                throw new Error('Invalid credentials');
+                throw new GraphQLError('Invalid credentials', {
+                    extensions: { code: 'UNAUTHENTICATED' }
+                });
             }
 
             const token = generateToken(user._id);
@@ -63,7 +73,10 @@ const AuthService = {
                 }
             };
         } catch (error) {
-            throw new Error(error.message);
+            if (error instanceof GraphQLError) throw error;
+            throw new GraphQLError(error.message, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' }
+            });
         }
     }
 };

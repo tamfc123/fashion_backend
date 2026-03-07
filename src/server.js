@@ -9,6 +9,8 @@ import typeDefs from "./schema/typeDefs.js";
 import resolvers from "./schema/resolvers.js";
 import authMiddleware from "./middleware/auth.js";
 
+import { graphqlUploadExpress } from "graphql-upload-minimal";
+
 dotenv.config();
 await connectDB();
 
@@ -21,6 +23,9 @@ const server = new ApolloServer({
 });
 
 await server.start();
+
+// Use graphql-upload-minimal middleware before Apollo
+app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 5 }));
 
 app.use(
     "/graphql",

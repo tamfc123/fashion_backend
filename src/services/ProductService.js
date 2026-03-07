@@ -1,11 +1,12 @@
 import Product from "../models/Product.js";
+import { uploadStreamToCloudinary } from "../utils/cloudinaryUploader.js";
 
 class ProductService {
     async getProducts({ pagination, filter }) {
         const page = pagination?.page || 1;
         const limit = pagination?.limit || 10;
 
-        // Build query
+        // ... (getProducts remains unchanged for brevity, but we keep the whole block)
         const query = { isArchived: false };
 
         if (filter) {
@@ -79,7 +80,7 @@ class ProductService {
         return obj;
     }
 
-    async createProduct(input, context) {
+    async createProduct(input, files, context) {
         if (!context.user) {
             throw new Error("Unauthorized");
         }
@@ -101,8 +102,23 @@ class ProductService {
             }
         }
 
+        let imageUrls = [];
+
+        // If files are provided, upload them sequentially or in parallel
+        if (files && files.length > 0) {
+            try {
+                // We resolve all Upload promises out of graphql-upload using Promise.all
+                imageUrls = await Promise.all(
+                    files.map(file => uploadStreamToCloudinary(file))
+                );
+            } catch (error) {
+                throw new Error("Failed to upload images to Cloudinary");
+            }
+        }
+
         const product = await Product.create({
             ...input,
+            images: imageUrls,
             createdBy: context.user.id
         });
 

@@ -1,4 +1,6 @@
 const typeDefs = `
+  scalar Upload
+
   enum ProductCategory {
     SHIRT
     PANTS
@@ -78,7 +80,6 @@ const typeDefs = `
     name: String!
     description: String
     category: ProductCategory!
-    images: [String!]
     variants: [ProductVariantInput!]!
   }
 
@@ -116,7 +117,7 @@ const typeDefs = `
     login(input: LoginInput!): AuthPayload!
     updateProfile(input: UpdateProfileInput!): User!
     changePassword(input: ChangePasswordInput!): String!
-    createProduct(input: CreateProductInput!): Product!
+    createProduct(input: CreateProductInput!, files: [Upload!]): Product!
   }
 
   type CartItem {
