@@ -3,10 +3,8 @@ import UserService from "../services/UserService.js";
 import ProductService from "../services/ProductService.js";
 import CartService from "../services/CartService.js";
 import OrderService from "../services/OrderService.js";
-import { GraphQLUpload } from "graphql-upload-minimal";
 
 const resolvers = {
-    Upload: GraphQLUpload,
 
     Query: {
         getMe: async (_, __, context) => {
@@ -38,8 +36,8 @@ const resolvers = {
         changePassword: async (_, { input }, context) => {
             return UserService.changePassword(input, context);
         },
-        createProduct: async (_, { input, files }, context) => {
-            return ProductService.createProduct(input, files, context);
+        createProduct: async (_, { input }, context) => {
+            return ProductService.createProduct(input, context);
         },
         addToCart: async (_, { input }, context) => {
             return CartService.addToCart(input, context);

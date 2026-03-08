@@ -10,13 +10,11 @@ cloudinary.config({
 });
 
 /**
- * Uploads a GraphQL Upload File Stream to Cloudinary buffer
- * @param {Promise} file - The file Promise from GraphQLUpload (graphql-upload-minimal)
+ * Uploads a file buffer (from Multer) to Cloudinary
+ * @param {Buffer} buffer - The file buffer
  * @returns {Promise<string>} The Cloudinary secure_url
  */
-export const uploadStreamToCloudinary = async (file) => {
-    const { createReadStream } = await file;
-
+export const uploadBufferToCloudinary = async (buffer) => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
             { folder: "fashion_app_products" },
@@ -29,6 +27,7 @@ export const uploadStreamToCloudinary = async (file) => {
             }
         );
 
-        createReadStream().pipe(stream);
+        // End the stream with the buffer
+        stream.end(buffer);
     });
 };
