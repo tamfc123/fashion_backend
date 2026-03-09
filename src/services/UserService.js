@@ -18,6 +18,10 @@ const UserService = {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                phone: user.phone,
+                street: user.street,
+                district: user.district,
+                city: user.city,
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt,
             };
@@ -38,6 +42,11 @@ const UserService = {
             }
 
             user.name = input.name;
+            user.phone = input.phone !== undefined ? input.phone : user.phone;
+            user.street = input.street !== undefined ? input.street : user.street;
+            user.district = input.district !== undefined ? input.district : user.district;
+            user.city = input.city !== undefined ? input.city : user.city;
+
             await user.save();
 
             return {
@@ -45,6 +54,10 @@ const UserService = {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                phone: user.phone,
+                street: user.street,
+                district: user.district,
+                city: user.city,
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt,
             };

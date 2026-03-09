@@ -46,6 +46,10 @@ const typeDefs = `
     name: String!
     email: String!
     role: String!
+    phone: String
+    street: String
+    district: String
+    city: String
     createdAt: String!
     updatedAt: String!
   }
@@ -95,6 +99,10 @@ const typeDefs = `
 
   input UpdateProfileInput {
     name: String!
+    phone: String
+    street: String
+    district: String
+    city: String
   }
 
   input ChangePasswordInput {
