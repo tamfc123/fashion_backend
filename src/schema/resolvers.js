@@ -49,6 +49,15 @@ const resolvers = {
             return OrderService.mockPayOrder(orderId, context);
         }
     },
+    CartItem: {
+        product: async (parent) => {
+            return ProductService.getProductById(parent.productId);
+        },
+        variant: async (parent) => {
+            const product = await ProductService.getProductById(parent.productId);
+            return product.variants.find(v => v.id === parent.variantId);
+        }
+    }
 };
 
 export default resolvers;

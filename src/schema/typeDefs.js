@@ -123,6 +123,8 @@ const typeDefs = `
     productId: ID!
     variantId: ID!
     quantity: Int!
+    product: Product!
+    variant: ProductVariant!
   }
 
   type Cart {
