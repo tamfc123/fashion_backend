@@ -3,6 +3,7 @@ import UserService from "../services/UserService.js";
 import ProductService from "../services/ProductService.js";
 import CartService from "../services/CartService.js";
 import OrderService from "../services/OrderService.js";
+import WishlistService from "../services/WishlistService.js";
 
 const resolvers = {
 
@@ -21,6 +22,13 @@ const resolvers = {
         },
         getMyOrders: async (_, args, context) => {
             return OrderService.getMyOrders(args, context);
+        },
+        getOrders: async (_, __, context) => {
+            if (!context.user) throw new Error('Unauthorized');
+            return OrderService.getOrders(context.user.id);
+        },
+        getWishlist: async (_, __, context) => {
+            return WishlistService.getWishlist(context);
         }
     },
     Mutation: {
@@ -42,11 +50,20 @@ const resolvers = {
         addToCart: async (_, { input }, context) => {
             return CartService.addToCart(input, context);
         },
+        updateCartItemQuantity: async (_, { input }, context) => {
+            return CartService.updateCartItemQuantity(input, context);
+        },
+        removeFromCart: async (_, { productId, variantId }, context) => {
+            return CartService.removeFromCart(productId, variantId, context);
+        },
         checkout: async (_, { input }, context) => {
             return OrderService.checkout(input, context);
         },
         mockPayOrder: async (_, { orderId }, context) => {
             return OrderService.mockPayOrder(orderId, context);
+        },
+        toggleWishlist: async (_, { productId }, context) => {
+            return WishlistService.toggleWishlist(productId, context);
         }
     },
     CartItem: {

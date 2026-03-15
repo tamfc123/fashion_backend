@@ -9,6 +9,7 @@ import typeDefs from "./schema/typeDefs.js";
 import resolvers from "./schema/resolvers.js";
 import authMiddleware from "./middleware/auth.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 dotenv.config();
 await connectDB();
@@ -25,6 +26,7 @@ await server.start();
 
 // REST routes
 app.use('/api/upload', uploadRoutes);
+app.use('/api/payment', paymentRoutes);
 
 app.use(
     "/graphql",
@@ -33,6 +35,7 @@ app.use(
     expressMiddleware(server, {
         context: async ({ req }) => ({
             user: await authMiddleware(req),
+            req: req,
         }),
     })
 );

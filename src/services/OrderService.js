@@ -1,6 +1,7 @@
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
+import VnPayService from './VnPayService.js';
 
 const OrderService = {
     checkout: async (input, context) => {
@@ -55,17 +56,37 @@ const OrderService = {
 
             const order = await Order.create({
                 userId: context.user.id,
+                shippingAddress: input.shippingAddress,
+                phone: input.phone,
                 items: orderItems,
                 totalAmount,
-                status: "PENDING"
+                status: "PENDING",
+                paymentMethod: input.paymentMethod || "COD",
+                paymentStatus: "PENDING",
+                paymentDetails: {}
             });
 
             cart.items = [];
             await cart.save();
 
+            let paymentUrl = null;
+            if (order.paymentMethod === 'VNPAY') {
+                const isPlaceholder = !process.env.VNP_TMN_CODE || process.env.VNP_TMN_CODE === 'HDO2OS3E';
+                
+                if (isPlaceholder) {
+                    // Use Professional Mock Gateway for local development
+                    paymentUrl = `http://localhost:5005/api/payment/mock-vnpay?orderId=${order._id}&amount=${order.totalAmount}`;
+                } else {
+                    const ipAddr = context.req ? (context.req.headers['x-forwarded-for'] || context.req.connection.remoteAddress) : '127.0.0.1';
+                    paymentUrl = VnPayService.createPaymentUrl(order._id.toString(), order.totalAmount, ipAddr, `Thanh toan don hang ${order._id}`);
+                }
+            }
+
             return {
                 id: order._id.toString(),
                 userId: order.userId.toString(),
+                shippingAddress: order.shippingAddress,
+                phone: order.phone,
                 items: order.items.map(i => ({
                     productId: i.productId.toString(),
                     variantId: i.variantId.toString(),
@@ -77,8 +98,11 @@ const OrderService = {
                 })),
                 totalAmount: order.totalAmount,
                 status: order.status,
-                createdAt: order.createdAt,
-                updatedAt: order.updatedAt
+                paymentMethod: order.paymentMethod,
+                paymentStatus: order.paymentStatus,
+                paymentUrl: paymentUrl,
+                createdAt: order.createdAt ? order.createdAt.toISOString() : new Date().toISOString(),
+                updatedAt: order.updatedAt ? order.updatedAt.toISOString() : new Date().toISOString()
             };
         } catch (error) {
             throw new Error(error.message);
@@ -111,6 +135,8 @@ const OrderService = {
             return {
                 id: order._id.toString(),
                 userId: order.userId.toString(),
+                shippingAddress: order.shippingAddress,
+                phone: order.phone,
                 items: order.items.map(i => ({
                     productId: i.productId.toString(),
                     variantId: i.variantId.toString(),
@@ -122,9 +148,42 @@ const OrderService = {
                 })),
                 totalAmount: order.totalAmount,
                 status: order.status,
-                createdAt: order.createdAt,
-                updatedAt: order.updatedAt
+                paymentMethod: order.paymentMethod,
+                paymentStatus: order.paymentStatus,
+                paymentUrl: null,
+                createdAt: order.createdAt ? order.createdAt.toISOString() : new Date().toISOString(),
+                updatedAt: order.updatedAt ? order.updatedAt.toISOString() : new Date().toISOString()
             };
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    },
+
+    async getOrders(userId) {
+        try {
+            const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+            return orders.map(order => ({
+                id: order._id.toString(),
+                userId: order.userId.toString(),
+                shippingAddress: order.shippingAddress,
+                phone: order.phone,
+                items: order.items.map(i => ({
+                    productId: i.productId.toString(),
+                    variantId: i.variantId.toString(),
+                    productName: i.productName,
+                    size: i.size,
+                    color: i.color,
+                    quantity: i.quantity,
+                    priceAtPurchase: i.priceAtPurchase
+                })),
+                totalAmount: order.totalAmount,
+                status: order.status,
+                paymentMethod: order.paymentMethod,
+                paymentStatus: order.paymentStatus,
+                paymentUrl: order.paymentUrl,
+                createdAt: order.createdAt ? order.createdAt.toISOString() : null,
+                updatedAt: order.updatedAt ? order.updatedAt.toISOString() : null
+            }));
         } catch (error) {
             throw new Error(error.message);
         }
@@ -152,6 +211,8 @@ const OrderService = {
                 data: orders.map(order => ({
                     id: order._id.toString(),
                     userId: order.userId.toString(),
+                    shippingAddress: order.shippingAddress,
+                    phone: order.phone,
                     items: order.items.map(i => ({
                         productId: i.productId.toString(),
                         variantId: i.variantId.toString(),
@@ -163,8 +224,11 @@ const OrderService = {
                     })),
                     totalAmount: order.totalAmount,
                     status: order.status,
-                    createdAt: order.createdAt,
-                    updatedAt: order.updatedAt
+                    paymentMethod: order.paymentMethod,
+                    paymentStatus: order.paymentStatus,
+                    paymentUrl: null,
+                    createdAt: order.createdAt ? order.createdAt.toISOString() : new Date().toISOString(),
+                    updatedAt: order.updatedAt ? order.updatedAt.toISOString() : new Date().toISOString()
                 })),
                 totalItems,
                 totalPages,

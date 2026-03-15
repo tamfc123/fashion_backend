@@ -107,6 +107,29 @@ const CartService = {
 
             const { productId, variantId, quantity } = input;
 
+            if (quantity <= 0) {
+                // If quantity <= 0, remove the item completely
+                const cart = await Cart.findOneAndUpdate(
+                    { userId: context.user.id },
+                    { $pull: { items: { productId, variantId } } },
+                    { new: true }
+                );
+
+                if (!cart) throw new Error("Cart not found");
+
+                return {
+                    id: cart._id.toString(),
+                    userId: cart.userId.toString(),
+                    items: cart.items.map(cartItem => ({
+                        productId: cartItem.productId.toString(),
+                        variantId: cartItem.variantId.toString(),
+                        quantity: cartItem.quantity
+                    })),
+                    createdAt: cart.createdAt,
+                    updatedAt: cart.updatedAt
+                };
+            }
+
             const cart = await Cart.findOne({ userId: context.user.id });
 
             if (!cart) {
@@ -121,14 +144,7 @@ const CartService = {
                 throw new Error("Item not found in cart");
             }
 
-            if (quantity <= 0) {
-                cart.items = cart.items.filter(
-                    i => !(i.productId.toString() === productId && i.variantId.toString() === variantId)
-                );
-            } else {
-                item.quantity = quantity;
-            }
-
+            item.quantity = quantity;
             await cart.save();
 
             return {
@@ -153,17 +169,15 @@ const CartService = {
                 throw new Error("Unauthorized");
             }
 
-            const cart = await Cart.findOne({ userId: context.user.id });
-
-            if (!cart) {
-                throw new Error("Cart not found"); // Fallback if no cart exists
-            }
-
-            cart.items = cart.items.filter(
-                i => !(i.productId.toString() === productId && i.variantId.toString() === variantId)
+            const cart = await Cart.findOneAndUpdate(
+                { userId: context.user.id },
+                { $pull: { items: { productId, variantId } } },
+                { new: true }
             );
 
-            await cart.save();
+            if (!cart) {
+                throw new Error("Cart not found");
+            }
 
             return {
                 id: cart._id.toString(),

@@ -117,6 +117,7 @@ const typeDefs = `
       filter: ProductFilterInput
     ): PaginatedProducts!
     getProductById(id: ID!): Product
+    getOrders: [Order!]!
   }
 
   type Mutation {
@@ -157,6 +158,7 @@ const typeDefs = `
 
   extend type Query {
     getMyCart: Cart!
+    getWishlist: [Product!]!
   }
 
   extend type Mutation {
@@ -166,6 +168,7 @@ const typeDefs = `
       productId: ID!
       variantId: ID!
     ): Cart!
+    toggleWishlist(productId: ID!): [ID!]!
   }
 
   type OrderItem {
@@ -181,9 +184,14 @@ const typeDefs = `
   type Order {
     id: ID!
     userId: ID!
+    shippingAddress: String
+    phone: String
     items: [OrderItem!]!
     totalAmount: Float!
     status: String!
+    paymentMethod: String!
+    paymentStatus: String!
+    paymentUrl: String
     createdAt: String!
     updatedAt: String!
   }
@@ -198,6 +206,7 @@ const typeDefs = `
   input CheckoutInput {
     shippingAddress: String!
     phone: String!
+    paymentMethod: String!
   }
 
   extend type Query {

@@ -7,6 +7,8 @@ const OrderSchema = new mongoose.Schema(
             ref: 'User',
             required: true,
         },
+        shippingAddress: String,
+        phone: String,
         items: [
             {
                 productId: {
@@ -28,6 +30,20 @@ const OrderSchema = new mongoose.Schema(
             type: String,
             enum: ['PENDING', 'PAID', 'CANCELLED'],
             default: 'PENDING',
+        },
+        paymentMethod: {
+            type: String,
+            enum: ['COD', 'VNPAY'],
+            default: 'COD',
+        },
+        paymentStatus: {
+            type: String,
+            enum: ['PENDING', 'PAID', 'FAILED', 'REFUNDED'],
+            default: 'PENDING',
+        },
+        paymentDetails: {
+            type: Object,
+            default: {},
         },
     },
     {
